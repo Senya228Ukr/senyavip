@@ -1,70 +1,80 @@
 <!DOCTYPE html>
-
 <html lang="ru">
 <head>
-<meta charset="utf-8"/>
-<title>THM</title>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<link href="assets/styles.css" rel="stylesheet"/>
-<link href="../assets/css/global.css" rel="stylesheet"/></head>
+    <meta charset="utf-8"/>
+    <title>TryHackMe — Achievements</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <link rel="stylesheet" href="global.css"/>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+
 <body>
-<div class="container"><p>In this page are represented all my achievments in TryHackMe</p>
-<div class="header"><h1><a href="https://tryhackme.com/p/karsenij456">TryHackMe</a></h1></div>
-<nav class="nav">
-<a href="index.html">home</a>
-<ul id="feed"></ul>
-</nav><div class="grid cols-2" id="list"></div></div>
 
-<script>
-(function(){
-  const KEY = 'posts:thm';
-  const root = document.getElementById('list');
+<div class="container">
 
-  function render(){
-    if (!root) { return; }
+    <h1>TryHackMe Achievements</h1>
 
-    root.innerHTML = '';
-    let arr = [];
-    try { arr = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { arr = []; }
+    <!-- Только возврат на главную -->
+    <a class="btn" href="index.html">На главную</a>
 
-    if (arr.length === 0) {
-      const p = document.createElement('p');
-      p.textContent = 'Пока нет записей.';
-      root.appendChild(p);
-      return;
+    <div class="grid cols-2" id="list"></div>
+</div>
+
+<script type="module" src="firebase-init.js"></script>
+
+<script type="module">
+import { collection, getDocs, query, orderBy }
+    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const list = document.getElementById("list");
+
+async function loadPosts() {
+    list.innerHTML = "<p>Загрузка...</p>";
+
+    const q = query(
+        collection(window.db, "tryhackme"),
+        orderBy("createdAt", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+        list.innerHTML = "<p>Пока нет публикаций.</p>";
+        return;
     }
 
-    for (const item of arr) {
-      const card = document.createElement('div');
-      card.className = 'card reveal';
+    list.innerHTML = "";
 
-      const head = document.createElement('div');
-      head.className = 'card-header';
-      head.textContent = item.title || '';
-      card.appendChild(head);
+    snapshot.forEach(doc => {
+        const item = doc.data();
 
-      const body = document.createElement('div');
-      body.className = 'card-content';
+        const card = document.createElement("div");
+        card.className = "card reveal";
 
-      if (item.image) {
-        const img = document.createElement('img');
+        const head = document.createElement("div");
+        head.className = "card-header";
+        head.textContent = item.title;
+        card.appendChild(head);
+
+        const body = document.createElement("div");
+        body.className = "card-content";
+
+        const img = document.createElement("img");
         img.src = item.image;
-        img.alt = item.title || '';
-        img.style.maxWidth = '100%';
-        img.style.height = 'auto';
+        img.alt = item.title;
+        img.style.maxWidth = "100%";
+        img.style.borderRadius = "8px";
+
         body.appendChild(img);
-      } else if (item.body) {
-        body.textContent = item.body;
-      } else {
-        body.textContent = '';
-      }
+        card.appendChild(body);
 
-      card.appendChild(body);
-      root.appendChild(card);
-    }
-  }
+        list.appendChild(card);
+    });
+}
 
-  render();
-})();
-</script></body>
+loadPosts();
+</script>
+
+</body>
 </html>
