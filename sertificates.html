@@ -13,76 +13,89 @@
 
 <div class="container">
 
-    <h1>Сертификаты</h1>
+    <div class="header">
+        <h1>Сертификаты</h1>
+    </div>
 
-    <!-- Только кнопка на главную -->
-    <a class="btn" href="index.html">На главную</a>
+    <nav class="nav">
+        <a href="index.html">home</a>
+    </nav>
 
     <div class="grid cols-2" id="list"></div>
-
 </div>
 
 <script type="module" src="firebase-init.js"></script>
 
 <script type="module">
-import { collection, getDocs, query, orderBy }
-    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import {
+    collection,
+    getDocs,
+    query,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const list = document.getElementById("list");
+const root = document.getElementById("list");
 
-async function load() {
-    list.innerHTML = "<p>Загрузка...</p>";
+async function loadCertificates() {
+    root.innerHTML = "<p>Загрузка...</p>";
 
     const q = query(
         collection(window.db, "certificates"),
         orderBy("createdAt", "desc")
     );
+    const snapshot = await getDocs(q);
 
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-        list.innerHTML = "<p>Пока нет сертификатов.</p>";
+    if (snapshot.empty) {
+        root.innerHTML = "<p>Пока нет сертификатов.</p>";
         return;
     }
 
-    list.innerHTML = "";
+    root.innerHTML = "";
 
-    snap.forEach(doc => {
+    snapshot.forEach(doc => {
         const item = doc.data();
 
         const card = document.createElement("div");
         card.className = "card reveal";
 
+        // Заголовок
         const head = document.createElement("div");
         head.className = "card-header";
-        head.textContent = item.title;
+        head.textContent = item.title || "Без названия";
         card.appendChild(head);
 
+        // Контент
         const body = document.createElement("div");
         body.className = "card-content";
 
-        if (item.image) {
-            const img = document.createElement("img");
-            img.src = item.image;
-            img.alt = item.title;
-            img.style.maxWidth = "100%";
-            img.style.borderRadius = "8px";
-            body.appendChild(img);
+        // кнопка «Открыть»
+        if (item.link) {
+            const btn = document.createElement("a");
+            btn.href = item.link;
+            btn.textContent = "Открыть";
+            btn.target = "_blank";
+            btn.rel = "noopener";
+            btn.className = "btn-primary glow shimmer";
+            body.appendChild(btn);
         }
 
-        if (item.text) {
+        // дата
+        if (item.createdAt && item.createdAt.toDate) {
             const p = document.createElement("p");
-            p.textContent = item.text;
-            p.style.marginTop = "10px";
+            const date = item.createdAt.toDate();
+            p.textContent = `Добавлено: ${date.toLocaleString("ru-RU")}`;
+            p.style.color = "var(--muted)";
+            p.style.fontSize = "0.85rem";
+            p.style.marginTop = "12px";
             body.appendChild(p);
         }
 
         card.appendChild(body);
-        list.appendChild(card);
+        root.appendChild(card);
     });
 }
 
-load();
+loadCertificates();
 </script>
 
 </body>

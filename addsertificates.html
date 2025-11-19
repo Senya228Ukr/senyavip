@@ -18,73 +18,50 @@
         <div class="card-content">
 
             <input id="title" placeholder="Заголовок" class="input" required />
+            <input id="link" placeholder="Ссылка на сертификат (https://...)" class="input" required />
 
-            <textarea id="body" placeholder="Описание (необязательно)" 
-                      rows="5" class="input"></textarea>
-
-            <input id="image" type="file" accept="image/*" class="input" />
-
-            <button class="btn-primary shimmer glow" type="submit">
-                Сохранить
-            </button>
-
+            <button class="btn-primary glow shimmer" type="submit">Сохранить</button>
             <a class="btn-ghost" href="sertificates.html">К списку</a>
         </div>
     </form>
 </div>
 
-<!-- Firebase -->
 <script type="module" src="firebase-init.js"></script>
 
 <script type="module">
-
 import { collection, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-import { ref, uploadBytes, getDownloadURL }
-    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
-
 const form = document.getElementById("postForm");
+const titleInput = document.getElementById("title");
+const linkInput = document.getElementById("link");
 
-form.addEventListener("submit", async e => {
+form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const title = document.getElementById("title").value.trim();
-    const text = document.getElementById("body").value.trim();
-    const file = document.getElementById("image").files[0];
+    const title = titleInput.value.trim();
+    const link = linkInput.value.trim();
 
-    if (!title) {
-        alert("Введите заголовок");
+    if (!title || !link) {
+        alert("Заполните все поля.");
         return;
     }
 
     try {
-        let imageUrl = null;
-
-        // Загружаем картинку, если она есть
-        if (file) {
-            const fileRef = ref(window.storage, `certificates/${Date.now()}_${file.name}`);
-            await uploadBytes(fileRef, file);
-            imageUrl = await getDownloadURL(fileRef);
-        }
-
-        // Добавляем запись
         await addDoc(collection(window.db, "certificates"), {
-            title,
-            text,
-            image: imageUrl,
+            title: title,
+            link: link,
             createdAt: serverTimestamp()
         });
 
         alert("Сертификат добавлен!");
         window.location.href = "sertificates.html";
 
-    } catch (err) {
-        console.error(err);
-        alert("Ошибка при сохранении.");
+    } catch (error) {
+        console.error(error);
+        alert("Ошибка сохранения.");
     }
 });
-
 </script>
 
 </body>
