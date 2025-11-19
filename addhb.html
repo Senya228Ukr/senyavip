@@ -16,8 +16,11 @@
 
     <form class="card" id="postForm">
         <div class="card-content">
+
             <input id="title" placeholder="Заголовок" class="input" required />
-            <input id="image" type="file" accept="image/*" class="input" required />
+
+            <input id="link" placeholder="Ссылка (https://...)" class="input" required />
+
             <button class="btn-primary glow shimmer" type="submit">Сохранить</button>
             <a class="btn-ghost" href="hb.html">К списку</a>
         </div>
@@ -28,39 +31,29 @@
 <script type="module" src="firebase-init.js"></script>
 
 <script type="module">
-
 import { collection, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-import { ref, uploadBytes, getDownloadURL }
-    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-storage.js";
-
 const form = document.getElementById("postForm");
 const titleInput = document.getElementById("title");
-const imageInput = document.getElementById("image");
+const linkInput = document.getElementById("link");
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const title = titleInput.value.trim();
-    const file = imageInput.files[0];
+    const link = linkInput.value.trim();
 
-    if (!title || !file) {
+    if (!title || !link) {
         alert("Заполните все поля.");
         return;
     }
 
     try {
-
-        // 1. Загружаем картинку в Storage
-        const fileRef = ref(window.storage, `hb-images/${Date.now()}_${file.name}`);
-        await uploadBytes(fileRef, file);
-        const imageUrl = await getDownloadURL(fileRef);
-
-        // 2. Добавляем публикацию в Firestore
+        // Добавляем публикацию в Firestore
         await addDoc(collection(window.db, "hackthebox"), {
             title: title,
-            image: imageUrl,
+            link: link,
             createdAt: serverTimestamp()
         });
 
